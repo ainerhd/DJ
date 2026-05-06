@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 
@@ -11,9 +13,14 @@ public sealed class MainViewModel : BindableBase, IDisposable
     private readonly SettingsStore _settings;
     private readonly MixerSignalProcessor _processor = new();
     private MixerConfiguration _configuration = new();
-    private DateTime _fpsWindowStart = DateTime.UtcNow;
-    private int _fpsCounter;
-    private int _currentFps;
+    private readonly object _latestLock = new();
+    private int[] _latestRaw = Array.Empty<int>();
+    private int[] _latestPercent = Array.Empty<int>();
+    private double[] _latestFiltered = Array.Empty<double>();
+    private double[] _latestApplied = Array.Empty<double>();
+    private string[] _latestDeviceNames = Array.Empty<string>();
+    private long _lastUiPushTicks;
+    private int _uiPushPending;
 
     private Dictionary<int, ChannelRoutingRow> _routeCache = new();
     private Dictionary<string, AudioDeviceInfo> _deviceCache = new();
@@ -102,12 +109,6 @@ public sealed class MainViewModel : BindableBase, IDisposable
     {
         get => _activePort;
         set => SetProperty(ref _activePort, value);
-    }
-
-    public int CurrentFps
-    {
-        get => _currentFps;
-        set => SetProperty(ref _currentFps, value);
     }
 
     public string SelectedPresetName
@@ -387,37 +388,32 @@ public sealed class MainViewModel : BindableBase, IDisposable
 
     private void OnFrameReceived(MixerFrame frame)
     {
-        if (!Application.Current.Dispatcher.CheckAccess())
+        var channelCount = Math.Min(frame.RawValues.Count, Channels.Count);
+        if (channelCount <= 0)
         {
-            Application.Current.Dispatcher.InvokeAsync(() => OnFrameReceived(frame));
             return;
         }
 
-        _fpsCounter++;
-        if ((DateTime.UtcNow - _fpsWindowStart).TotalSeconds >= 1)
-        {
-            _fpsWindowStart = DateTime.UtcNow;
-            CurrentFps = _fpsCounter;
-            _fpsCounter = 0;
-        }
+        var raw = new int[channelCount];
+        var percent = new int[channelCount];
+        var filtered = new double[channelCount];
+        var applied = new double[channelCount];
+        var deviceNames = new string[channelCount];
 
-        for (var i = 0; i < frame.RawValues.Count && i < Channels.Count; i++)
+        for (var i = 0; i < channelCount; i++)
         {
-            var channel = Channels[i];
-            var raw = frame.RawValues[i];
-            var (percent, filtered) = _processor.Process(i, raw);
-
-            channel.RawValue = raw;
-            channel.Percent = percent;
-            channel.FilteredPercent = Math.Round(filtered, 1);
+            raw[i] = frame.RawValues[i];
+            var result = _processor.Process(i, raw[i]);
+            percent[i] = result.percent;
+            filtered[i] = Math.Round(result.filteredPercent, 1);
 
             _routeCache.TryGetValue(i + 1, out var route);
             var deviceId = route?.AudioDeviceId ?? string.Empty;
             var invert = route?.Invert ?? false;
 
-            var volume = invert ? 100.0 - filtered : filtered;
-            channel.AppliedVolume = Math.Round(volume, 1);
-            channel.TargetDeviceName = _deviceCache.TryGetValue(deviceId, out var dev) ? dev.Name : "Default Device";
+            var volume = invert ? 100.0 - result.filteredPercent : result.filteredPercent;
+            applied[i] = Math.Round(volume, 1);
+            deviceNames[i] = _deviceCache.TryGetValue(deviceId, out var dev) ? dev.Name : "Default Device";
 
             try
             {
@@ -425,9 +421,67 @@ public sealed class MainViewModel : BindableBase, IDisposable
             }
             catch (Exception ex)
             {
-                LogStore.Add($"Audio error ch{channel.ChannelIndex}: {ex.Message}", true);
+                LogStore.Add($"Audio error ch{i + 1}: {ex.Message}", true);
             }
         }
+
+        lock (_latestLock)
+        {
+            _latestRaw = raw;
+            _latestPercent = percent;
+            _latestFiltered = filtered;
+            _latestApplied = applied;
+            _latestDeviceNames = deviceNames;
+        }
+
+        var now = Stopwatch.GetTimestamp();
+        var elapsedMs = (now - _lastUiPushTicks) * 1000.0 / Stopwatch.Frequency;
+        if (elapsedMs < 50)
+        {
+            return;
+        }
+
+        _lastUiPushTicks = now;
+        if (Interlocked.Exchange(ref _uiPushPending, 1) == 1)
+        {
+            return;
+        }
+
+        Application.Current.Dispatcher.BeginInvoke(() =>
+        {
+            try
+            {
+                int[] latestRaw;
+                int[] latestPercent;
+                double[] latestFiltered;
+                double[] latestApplied;
+                string[] latestDeviceNames;
+
+                lock (_latestLock)
+                {
+                    latestRaw = _latestRaw;
+                    latestPercent = _latestPercent;
+                    latestFiltered = _latestFiltered;
+                    latestApplied = _latestApplied;
+                    latestDeviceNames = _latestDeviceNames;
+                }
+
+                var count = Math.Min(Channels.Count, latestRaw.Length);
+                for (var i = 0; i < count; i++)
+                {
+                    var channel = Channels[i];
+                    channel.RawValue = latestRaw[i];
+                    channel.Percent = latestPercent[i];
+                    channel.FilteredPercent = latestFiltered[i];
+                    channel.AppliedVolume = latestApplied[i];
+                    channel.TargetDeviceName = latestDeviceNames[i];
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _uiPushPending, 0);
+            }
+        });
     }
 
     private void ClearLogs() => LogStore.Clear();
