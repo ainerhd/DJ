@@ -1,0 +1,66 @@
+<Window x:Class="AudioMixerController.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Audio Mixer Controller" Height="700" Width="1050"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="12" Background="#111111">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Padding="12" CornerRadius="10" Background="#1E1E1E" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="180" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Foreground="White" VerticalAlignment="Center" Text="Port" Margin="0,0,8,0" />
+                <ComboBox Grid.Column="1" ItemsSource="{Binding AvailablePorts}" SelectedItem="{Binding SelectedPort}" />
+                <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6" Content="Refresh" Command="{Binding RefreshPortsCommand}" />
+                <TextBlock Grid.Column="3" Foreground="White" VerticalAlignment="Center" Text="Baud" Margin="12,0,8,0" />
+                <ComboBox Grid.Column="4" ItemsSource="{Binding AvailableBaudRates}" SelectedItem="{Binding SelectedBaudRate}" />
+                <Button Grid.Column="5" Margin="12,0,0,0" Padding="12,6" Content="Connect" Command="{Binding ConnectCommand}" />
+                <Button Grid.Column="6" Margin="8,0,0,0" Padding="12,6" Content="Disconnect" Command="{Binding DisconnectCommand}" />
+                <Button Grid.Column="7" Margin="8,0,0,0" Padding="12,6" Content="Konfiguration" Click="OpenMonitor_Click" />
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Padding="12" CornerRadius="10" Background="#161616" Margin="0,0,0,12">
+            <DataGrid ItemsSource="{Binding Channels}" AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True" GridLinesVisibility="Horizontal">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Kanal" Binding="{Binding ChannelIndex}" Width="80" />
+                    <DataGridTextColumn Header="Lautstärke (%)" Binding="{Binding AppliedVolume}" Width="140" />
+                    <DataGridTextColumn Header="Rohwert" Binding="{Binding RawValue}" Width="100" />
+                    <DataGridTextColumn Header="Gefiltert (%)" Binding="{Binding FilteredPercent}" Width="130" />
+                    <DataGridTextColumn Header="Gerät" Binding="{Binding TargetDeviceName}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <Border Grid.Row="2" Padding="10" CornerRadius="10" Background="#1E1E1E">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Foreground="White" Text="Aktiver Port:" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Foreground="LightGreen" Text="{Binding ActivePort}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Foreground="White" Text="Status:" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Foreground="LightGreen" Text="{Binding ConnectionStatus}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

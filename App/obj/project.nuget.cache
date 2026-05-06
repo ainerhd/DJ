@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "dgSpecHash": "C7qJG7F5MBI=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\amin\\OneDrive\\IT\\DJ\\App\\AudioMixerController.App.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.android-arm.runtime.native.system.io.ports\\10.0.0\\runtime.android-arm.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.android-arm64.runtime.native.system.io.ports\\10.0.0\\runtime.android-arm64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.android-x64.runtime.native.system.io.ports\\10.0.0\\runtime.android-x64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.android-x86.runtime.native.system.io.ports\\10.0.0\\runtime.android-x86.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-arm.runtime.native.system.io.ports\\10.0.0\\runtime.linux-arm.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-arm64.runtime.native.system.io.ports\\10.0.0\\runtime.linux-arm64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-bionic-arm64.runtime.native.system.io.ports\\10.0.0\\runtime.linux-bionic-arm64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-bionic-x64.runtime.native.system.io.ports\\10.0.0\\runtime.linux-bionic-x64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-musl-arm.runtime.native.system.io.ports\\10.0.0\\runtime.linux-musl-arm.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-musl-arm64.runtime.native.system.io.ports\\10.0.0\\runtime.linux-musl-arm64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-musl-x64.runtime.native.system.io.ports\\10.0.0\\runtime.linux-musl-x64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.linux-x64.runtime.native.system.io.ports\\10.0.0\\runtime.linux-x64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.maccatalyst-arm64.runtime.native.system.io.ports\\10.0.0\\runtime.maccatalyst-arm64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.maccatalyst-x64.runtime.native.system.io.ports\\10.0.0\\runtime.maccatalyst-x64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.native.system.io.ports\\10.0.0\\runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.osx-arm64.runtime.native.system.io.ports\\10.0.0\\runtime.osx-arm64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\runtime.osx-x64.runtime.native.system.io.ports\\10.0.0\\runtime.osx-x64.runtime.native.system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\system.io.ports\\10.0.0\\system.io.ports.10.0.0.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.26\\microsoft.netcore.app.ref.8.0.26.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.26\\microsoft.windowsdesktop.app.ref.8.0.26.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.26\\microsoft.aspnetcore.app.ref.8.0.26.nupkg.sha512",
+    "C:\\Users\\amin\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.26\\microsoft.netcore.app.host.win-x64.8.0.26.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx @claude-flow/cli@latest doctor)",
+      "Bash(dotnet build *)"
+    ]
+  }
+}

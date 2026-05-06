@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "AudioMixerController (WPF)",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "App/AudioMixerController.App.csproj"],
+      "port": 0
+    }
+  ]
+}
