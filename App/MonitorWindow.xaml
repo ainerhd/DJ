@@ -4,17 +4,156 @@
         Title="Mixer Konfiguration" Height="700" Width="980"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
+        <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightLightBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkBrushKey}" Color="#3A4553" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkDarkBrushKey}" Color="#2E3640" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#2F3B4A" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#F3F6FA" />
+
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <Style TargetType="Border" x:Key="CardBorder">
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Background" Value="#1D232B" />
+            <Setter Property="BorderBrush" Value="#2E3640" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E8EEF5" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+            <Setter Property="BorderBrush" Value="#3A4553" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+            <Setter Property="BorderBrush" Value="#3A4553" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="6,3" />
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+        </Style>
+
+        <Style x:Key="DarkComboBox" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+            <Setter Property="BorderBrush" Value="#3A4553" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="32" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.ColumnSpan="2"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6" />
+
+                            <ContentPresenter Grid.Column="0"
+                                              Margin="10,0,6,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
+
+                            <ToggleButton Grid.ColumnSpan="2"
+                                          Focusable="False"
+                                          Background="Transparent"
+                                          BorderThickness="0"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press" />
+
+                            <Border Grid.Column="1" IsHitTestVisible="False" Background="#202732" CornerRadius="0,6,6,0" BorderBrush="#3A4553" BorderThickness="1,0,0,0">
+                                <TextBlock Text="▾" Foreground="#E8EEF5" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Border>
+
+                            <Popup Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Border Margin="0,4,0,0"
+                                        Background="#141920"
+                                        BorderBrush="#3A4553"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#171C22" />
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="BorderBrush" Value="#2E3640" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#2A313B" />
+            <Setter Property="RowBackground" Value="#171C22" />
+            <Setter Property="AlternatingRowBackground" Value="#1A2028" />
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Background" Value="#171C22" />
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="BorderBrush" Value="#2A313B" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#202732" />
+            <Setter Property="Foreground" Value="#E8EEF5" />
+            <Setter Property="BorderBrush" Value="#2E3640" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+            <Setter Property="BorderBrush" Value="#2E3640" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
     </Window.Resources>
-    <Grid Margin="12" Background="#111111">
+    <Grid Margin="14" Background="#12171D">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="220" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Padding="12" CornerRadius="10" Background="#1D1D1D" Margin="0,0,0,10">
+        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -27,49 +166,54 @@
                     <ColumnDefinition Width="130" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Foreground="White" Text="DeadZone" VerticalAlignment="Center" />
+                <TextBlock Text="DeadZone (RAW trim)" VerticalAlignment="Center" />
                 <TextBox Grid.Column="1" Margin="8,0,0,0" Text="{Binding DeadZone, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Column="2" Foreground="White" Text="Buffer" Margin="12,0,0,0" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="Buffer" Margin="12,0,0,0" VerticalAlignment="Center" />
                 <TextBox Grid.Column="3" Margin="8,0,0,0" Text="{Binding BufferSize, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Column="4" Foreground="White" Text="Smoothing" Margin="12,0,0,0" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="4" Text="Smoothing" Margin="12,0,0,0" VerticalAlignment="Center" />
                 <TextBox Grid.Column="5" Margin="8,0,0,0" Text="{Binding SmoothingFactor, UpdateSourceTrigger=PropertyChanged}" />
 
-                <CheckBox Grid.Column="6" Grid.ColumnSpan="2" Margin="14,0,0,0" VerticalAlignment="Center" Foreground="White"
+                <CheckBox Grid.Column="6" Grid.ColumnSpan="2" Margin="14,0,0,0" VerticalAlignment="Center" Foreground="#E8EEF5"
                           IsChecked="{Binding DebugLogsEnabled}" Content="Debug Logs anzeigen"/>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Padding="12" CornerRadius="10" Background="#1D1D1D" Margin="0,0,0,10">
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="220" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="180" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Foreground="White" Text="Profil" VerticalAlignment="Center" />
-                <ComboBox Grid.Column="1" Margin="8,0,0,0" ItemsSource="{Binding PresetNames}" SelectedItem="{Binding SelectedPresetName}" IsEditable="True" />
+                <TextBlock Text="Profil" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" Style="{StaticResource DarkComboBox}" Margin="8,0,0,0" ItemsSource="{Binding PresetNames}" SelectedItem="{Binding SelectedPresetName}" />
                 <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6" Content="Laden" Command="{Binding LoadPresetCommand}" />
-                <Button Grid.Column="3" Margin="8,0,0,0" Padding="12,6" Content="Speichern" Command="{Binding SavePresetCommand}" />
-                <Button Grid.Column="4" Margin="8,0,0,0" Padding="12,6" Content="Geräte aktualisieren" Command="{Binding RefreshDevicesCommand}" />
-                <Button Grid.Column="5" Margin="8,0,0,0" Padding="12,6" Content="Einstellungen sichern" Command="{Binding SaveSettingsCommand}" />
+                <TextBox Grid.Column="3" Margin="8,0,0,0" Text="{Binding PresetNameInput, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Column="4" Margin="8,0,0,0" Padding="12,6" Content="Speichern" Command="{Binding SavePresetCommand}" />
+                <Button Grid.Column="5" Margin="8,0,0,0" Padding="12,6" Content="Geräte aktualisieren" Command="{Binding RefreshDevicesCommand}" />
+                <Button Grid.Column="6" Margin="8,0,0,0" Padding="12,6" Content="Einstellungen sichern" Command="{Binding SaveSettingsCommand}" />
             </Grid>
         </Border>
 
-        <Border Grid.Row="2" Padding="12" CornerRadius="10" Background="#161616" Margin="0,0,0,10">
-            <DataGrid ItemsSource="{Binding ChannelRouting}" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column">
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" FontSize="14" FontWeight="SemiBold" Text="Kanalzuweisung" />
+            <DataGrid ItemsSource="{Binding ChannelRouting}" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" RowHeight="32" ColumnHeaderHeight="34">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Kanal" Binding="{Binding ChannelIndex}" IsReadOnly="True" Width="90" />
 
                     <DataGridTemplateColumn Header="Audio Gerät" Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <ComboBox ItemsSource="{Binding DataContext.AudioDevices, RelativeSource={RelativeSource AncestorType=Window}}"
+                                <ComboBox Style="{StaticResource DarkComboBox}"
+                                          ItemsSource="{Binding DataContext.AudioDevices, RelativeSource={RelativeSource AncestorType=Window}}"
                                           DisplayMemberPath="Name"
                                           SelectedValuePath="Id"
                                           SelectedValue="{Binding AudioDeviceId, UpdateSourceTrigger=PropertyChanged}" />
@@ -80,9 +224,23 @@
                     <DataGridCheckBoxColumn Header="Invertieren" Binding="{Binding Invert}" Width="120" />
                 </DataGrid.Columns>
             </DataGrid>
+            </DockPanel>
         </Border>
 
-        <Border Grid.Row="3" Padding="12" CornerRadius="10" Background="#1D1D1D"
+        <Border Grid.Row="3" Style="{StaticResource CardBorder}" Margin="0,0,0,10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" FontWeight="SemiBold" Text="Live Werte" />
+                <DataGrid ItemsSource="{Binding Channels}" AutoGenerateColumns="False" IsReadOnly="True" RowHeight="30" ColumnHeaderHeight="32">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Kanal" Binding="{Binding ChannelIndex}" Width="80" />
+                        <DataGridTextColumn Header="Rohwert" Binding="{Binding RawValue}" Width="120" />
+                        <DataGridTextColumn Header="Gefiltert (%)" Binding="{Binding FilteredPercent}" Width="140" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="4" Style="{StaticResource CardBorder}"
                 Visibility="{Binding DebugLogsEnabled, Converter={StaticResource BoolToVis}}">
             <DockPanel>
                 <Button DockPanel.Dock="Top" Width="120" Margin="0,0,0,8" Padding="10,4" Content="Logs leeren" Command="{Binding ClearLogsCommand}" />

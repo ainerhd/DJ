@@ -3,7 +3,7 @@ namespace AudioMixerController.App;
 public sealed class MixerSignalProcessor
 {
     private readonly Dictionary<int, double> _filtered = new();
-    private readonly Dictionary<int, Queue<int>> _buffers = new();
+    private readonly Dictionary<int, Queue<int>> _rawBuffers = new();
 
     public int AdcMaxValue { get; set; } = 1023;
     public double SmoothingFactor { get; set; } = 0.18;
@@ -12,35 +12,47 @@ public sealed class MixerSignalProcessor
 
     public (int percent, double filteredPercent) Process(int channelIndex, int rawValue)
     {
-        var percent = Normalize(rawValue, AdcMaxValue);
-        var buffered = AddAndAverage(channelIndex, percent);
+        var bufferedRaw = AddAndAverageRaw(channelIndex, rawValue);
+        var targetPercent = NormalizeWithEdgeTrim(bufferedRaw, AdcMaxValue, DeadZone);
 
         if (!_filtered.TryGetValue(channelIndex, out var previous))
         {
-            previous = buffered;
+            previous = targetPercent;
         }
 
-        if (Math.Abs(previous - buffered) <= DeadZone)
+        double filtered;
+
+        if (targetPercent <= 0.0)
         {
-            _filtered[channelIndex] = previous;
-            return (percent, previous);
+            filtered = 0.0;
+        }
+        else if (targetPercent >= 100.0)
+        {
+            filtered = 100.0;
+        }
+        else
+        {
+            filtered = previous + (targetPercent - previous) * Math.Clamp(SmoothingFactor, 0.01, 1.0);
+            if (Math.Abs(filtered - targetPercent) < 0.1)
+            {
+                filtered = targetPercent;
+            }
         }
 
-        var filtered = previous + (buffered - previous) * SmoothingFactor;
         _filtered[channelIndex] = filtered;
-        return (percent, filtered);
+        return ((int)Math.Round(targetPercent), filtered);
     }
 
-    private double AddAndAverage(int channelIndex, int percent)
+    private double AddAndAverageRaw(int channelIndex, int raw)
     {
         var size = Math.Clamp(BufferSize, 1, 32);
-        if (!_buffers.TryGetValue(channelIndex, out var buffer))
+        if (!_rawBuffers.TryGetValue(channelIndex, out var buffer))
         {
             buffer = new Queue<int>(size);
-            _buffers[channelIndex] = buffer;
+            _rawBuffers[channelIndex] = buffer;
         }
 
-        buffer.Enqueue(percent);
+        buffer.Enqueue(raw);
         while (buffer.Count > size)
         {
             buffer.Dequeue();
@@ -58,5 +70,36 @@ public sealed class MixerSignalProcessor
 
         var scaled = rawValue / (double)adcMaxValue * 100.0;
         return (int)Math.Round(Math.Clamp(scaled, 0, 100));
+    }
+
+    public static double NormalizeWithEdgeTrim(double rawValue, int adcMaxValue, int edgeTrimRaw)
+    {
+        if (adcMaxValue <= 0)
+        {
+            return 0;
+        }
+
+        var trim = Math.Clamp(edgeTrimRaw, 0, adcMaxValue / 2);
+        var minRaw = trim;
+        var maxRaw = adcMaxValue - trim;
+
+        if (rawValue <= minRaw)
+        {
+            return 0.0;
+        }
+
+        if (rawValue >= maxRaw)
+        {
+            return 100.0;
+        }
+
+        var range = maxRaw - minRaw;
+        if (range <= 0)
+        {
+            return rawValue >= adcMaxValue / 2.0 ? 100.0 : 0.0;
+        }
+
+        var scaled = (rawValue - minRaw) / range * 100.0;
+        return Math.Clamp(scaled, 0.0, 100.0);
     }
 }

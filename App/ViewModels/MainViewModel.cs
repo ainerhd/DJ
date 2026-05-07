@@ -30,6 +30,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
     private string _connectionStatus = "Disconnected";
     private string _activePort = "-";
     private string _selectedPresetName = "Default";
+    private string _presetNameInput = "Default";
     private int _deadZone = 2;
     private int _bufferSize = 4;
     private double _smoothingFactor = 0.18;
@@ -53,7 +54,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
         RefreshPortsCommand = new RelayCommand(RefreshPorts);
         ConnectCommand = new RelayCommand(async () => await ConnectAsync(), () => !string.IsNullOrWhiteSpace(SelectedPort));
         DisconnectCommand = new RelayCommand(Disconnect);
-        RefreshDevicesCommand = new RelayCommand(RefreshAudioDevices);
+        RefreshDevicesCommand = new RelayCommand(RefreshAudioDevicesSafe);
         SavePresetCommand = new RelayCommand(async () => await SavePresetAsync());
         LoadPresetCommand = new RelayCommand(async () => await LoadPresetAsync());
         SaveSettingsCommand = new RelayCommand(async () => await SaveSettingsAsync());
@@ -114,7 +115,19 @@ public sealed class MainViewModel : BindableBase, IDisposable
     public string SelectedPresetName
     {
         get => _selectedPresetName;
-        set => SetProperty(ref _selectedPresetName, value);
+        set
+        {
+            if (SetProperty(ref _selectedPresetName, value))
+            {
+                PresetNameInput = value;
+            }
+        }
+    }
+
+    public string PresetNameInput
+    {
+        get => _presetNameInput;
+        set => SetProperty(ref _presetNameInput, value);
     }
 
     public int DeadZone
@@ -192,12 +205,25 @@ public sealed class MainViewModel : BindableBase, IDisposable
         }
         RebuildChannels(_configuration.ChannelCount);
         RebuildChannelRouting();
+
+        if (!string.IsNullOrWhiteSpace(_configuration.LastPresetName) && PresetNames.Contains(_configuration.LastPresetName))
+        {
+            SelectedPresetName = _configuration.LastPresetName;
+            await LoadPresetAsync();
+        }
+
+        if (!string.IsNullOrWhiteSpace(SelectedPort) && AvailablePorts.Contains(SelectedPort))
+        {
+            await ConnectAsync();
+        }
     }
 
     private void ApplyConfiguration()
     {
         SelectedPort = _configuration.SelectedPort;
         SelectedBaudRate = _configuration.SelectedBaudRate;
+        SelectedPresetName = string.IsNullOrWhiteSpace(_configuration.LastPresetName) ? "Default" : _configuration.LastPresetName;
+        PresetNameInput = SelectedPresetName;
         DeadZone = _configuration.DeadZone;
         BufferSize = _configuration.BufferSize;
         SmoothingFactor = _configuration.SmoothingFactor;
@@ -230,6 +256,19 @@ public sealed class MainViewModel : BindableBase, IDisposable
         }
 
         _deviceCache = AudioDevices.ToDictionary(d => d.Id);
+    }
+
+    private void RefreshAudioDevicesSafe()
+    {
+        try
+        {
+            RefreshAudioDevices();
+        }
+        catch (Exception ex)
+        {
+            LogStore.Add($"Refresh devices error: {ex.Message}", true);
+            ConnectionStatus = "Audio device load failed";
+        }
     }
 
     private async Task ConnectAsync()
@@ -271,13 +310,22 @@ public sealed class MainViewModel : BindableBase, IDisposable
     {
         CaptureConfigurationFromUi();
 
+        var targetName = string.IsNullOrWhiteSpace(PresetNameInput) ? SelectedPresetName : PresetNameInput.Trim();
+        if (string.IsNullOrWhiteSpace(targetName))
+        {
+            targetName = "Default";
+        }
+
         var preset = new MixerPreset
         {
-            Name = string.IsNullOrWhiteSpace(SelectedPresetName) ? "Default" : SelectedPresetName,
+            Name = targetName,
             Configuration = _configuration
         };
 
         await _settings.SavePresetAsync(preset);
+        _configuration.LastPresetName = targetName;
+        SelectedPresetName = targetName;
+        await _settings.SaveAsync(_configuration);
         RefreshPresets();
     }
 
@@ -291,9 +339,12 @@ public sealed class MainViewModel : BindableBase, IDisposable
         }
 
         _configuration = preset.Configuration;
+        _configuration.LastPresetName = preset.Name;
+        SelectedPresetName = preset.Name;
         ApplyConfiguration();
         RebuildChannels(_configuration.ChannelCount);
         RebuildChannelRouting();
+        await _settings.SaveAsync(_configuration);
     }
 
     private void RefreshPresets()
@@ -372,6 +423,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
         _configuration.BufferSize = BufferSize;
         _configuration.SmoothingFactor = SmoothingFactor;
         _configuration.DebugLogsEnabled = DebugLogsEnabled;
+        _configuration.LastPresetName = string.IsNullOrWhiteSpace(SelectedPresetName) ? "Default" : SelectedPresetName;
 
         _configuration.ChannelMappings = ChannelRouting.Select(row =>
         {

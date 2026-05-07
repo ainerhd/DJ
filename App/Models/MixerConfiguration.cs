@@ -10,6 +10,7 @@ public sealed class MixerConfiguration
     public int DeadZone { get; set; } = 2;
     public int BufferSize { get; set; } = 4;
     public bool DebugLogsEnabled { get; set; }
+    public string LastPresetName { get; set; } = "Default";
     public List<MixerChannelMapping> ChannelMappings { get; set; } = new();
 }
 

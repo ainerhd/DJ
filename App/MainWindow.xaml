@@ -4,16 +4,175 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Audio Mixer Controller" Height="700" Width="1050"
+        Title="Audio Mixer Controller" Height="760" Width="1120"
         WindowStartupLocation="CenterScreen">
-    <Grid Margin="12" Background="#111111">
+    <Window.Resources>
+        <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightLightBrushKey}" Color="#141920" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkBrushKey}" Color="#3A4553" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkDarkBrushKey}" Color="#2E3640" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#2F3B4A" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#F3F6FA" />
+
+        <LinearGradientBrush x:Key="AppBackground" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#0E1013" Offset="0" />
+            <GradientStop Color="#1A1F25" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style TargetType="Border" x:Key="CardBorder">
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Background" Value="#1D232B" />
+            <Setter Property="BorderBrush" Value="#2E3640" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#2A313B" />
+            <Setter Property="BorderBrush" Value="#3A4553" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Margin" Value="0" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+            <Setter Property="BorderBrush" Value="#3A4553" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+            <Setter Property="BorderBrush" Value="#3A4553" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="6,3" />
+        </Style>
+
+        <Style x:Key="DarkComboBox" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+            <Setter Property="BorderBrush" Value="#3A4553" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="32" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.ColumnSpan="2"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6" />
+
+                            <ContentPresenter Grid.Column="0"
+                                              Margin="10,0,6,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
+
+                            <ToggleButton Grid.ColumnSpan="2"
+                                          Focusable="False"
+                                          Background="Transparent"
+                                          BorderThickness="0"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press" />
+
+                            <Border Grid.Column="1" IsHitTestVisible="False" Background="#202732" CornerRadius="0,6,6,0" BorderBrush="#3A4553" BorderThickness="1,0,0,0">
+                                <TextBlock Text="▾" Foreground="#E8EEF5" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Border>
+
+                            <Popup Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Border Margin="0,4,0,0"
+                                        Background="#141920"
+                                        BorderBrush="#3A4553"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#141920" />
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Background" Value="#171C22" />
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="BorderBrush" Value="#2A313B" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#202732" />
+            <Setter Property="Foreground" Value="#E8EEF5" />
+            <Setter Property="BorderBrush" Value="#2E3640" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E8EEF5" />
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="RowHeight" Value="34" />
+            <Setter Property="ColumnHeaderHeight" Value="36" />
+            <Setter Property="Background" Value="#171C22" />
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="BorderBrush" Value="#2E3640" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#2A313B" />
+            <Setter Property="RowBackground" Value="#171C22" />
+            <Setter Property="AlternatingRowBackground" Value="#1A2028" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16" Background="{StaticResource AppBackground}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Padding="12" CornerRadius="10" Background="#1E1E1E" Margin="0,0,0,12">
+        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" FontSize="20" FontWeight="SemiBold" Text="Audio Mixer Controller" />
+                <TextBlock DockPanel.Dock="Right" Foreground="#9FB0C5" VerticalAlignment="Center" Text="Live Mixer" />
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -25,30 +184,31 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Foreground="White" VerticalAlignment="Center" Text="Port" Margin="0,0,8,0" />
-                <ComboBox Grid.Column="1" ItemsSource="{Binding AvailablePorts}" SelectedItem="{Binding SelectedPort}" />
+                <TextBlock VerticalAlignment="Center" Text="COM Port" Margin="0,0,8,0" />
+                <ComboBox Grid.Column="1" Style="{StaticResource DarkComboBox}" ItemsSource="{Binding AvailablePorts}" SelectedItem="{Binding SelectedPort}" />
                 <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6" Content="Refresh" Command="{Binding RefreshPortsCommand}" />
-                <TextBlock Grid.Column="3" Foreground="White" VerticalAlignment="Center" Text="Baud" Margin="12,0,8,0" />
-                <ComboBox Grid.Column="4" ItemsSource="{Binding AvailableBaudRates}" SelectedItem="{Binding SelectedBaudRate}" />
+                <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="Baudrate" Margin="12,0,8,0" />
+                <ComboBox Grid.Column="4" Style="{StaticResource DarkComboBox}" ItemsSource="{Binding AvailableBaudRates}" SelectedItem="{Binding SelectedBaudRate}" />
                 <Button Grid.Column="5" Margin="12,0,0,0" Padding="12,6" Content="Connect" Command="{Binding ConnectCommand}" />
                 <Button Grid.Column="6" Margin="8,0,0,0" Padding="12,6" Content="Disconnect" Command="{Binding DisconnectCommand}" />
                 <Button Grid.Column="7" Margin="8,0,0,0" Padding="12,6" Content="Konfiguration" Click="OpenMonitor_Click" />
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Padding="12" CornerRadius="10" Background="#161616" Margin="0,0,0,12">
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Top" Margin="0,0,0,10" FontSize="15" FontWeight="SemiBold" Text="Kanäle" />
             <DataGrid ItemsSource="{Binding Channels}" AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True" GridLinesVisibility="Horizontal">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Kanal" Binding="{Binding ChannelIndex}" Width="80" />
                     <DataGridTextColumn Header="Lautstärke (%)" Binding="{Binding AppliedVolume}" Width="140" />
-                    <DataGridTextColumn Header="Rohwert" Binding="{Binding RawValue}" Width="100" />
-                    <DataGridTextColumn Header="Gefiltert (%)" Binding="{Binding FilteredPercent}" Width="130" />
                     <DataGridTextColumn Header="Gerät" Binding="{Binding TargetDeviceName}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>
+            </DockPanel>
         </Border>
 
-        <Border Grid.Row="2" Padding="10" CornerRadius="10" Background="#1E1E1E">
+        <Border Grid.Row="3" Style="{StaticResource CardBorder}" Padding="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -56,10 +216,10 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Foreground="White" Text="Aktiver Port:" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1" Foreground="LightGreen" Text="{Binding ActivePort}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Foreground="White" Text="Status:" Margin="20,0,0,0" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3" Foreground="LightGreen" Text="{Binding ConnectionStatus}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Aktiver Port:" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Foreground="#84D7A8" Text="{Binding ActivePort}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="Verbindungsstatus:" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Foreground="#84D7A8" Text="{Binding ConnectionStatus}" Margin="8,0,0,0" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AudioMixerController.App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2034bf4e1371a56bb772f3deda66ef47448b227a")]
 [assembly: System.Reflection.AssemblyProductAttribute("AudioMixerController.App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AudioMixerController.App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

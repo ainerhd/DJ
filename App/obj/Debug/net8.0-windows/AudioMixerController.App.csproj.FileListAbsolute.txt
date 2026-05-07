@@ -40,3 +40,11 @@ C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\refint\AudioMixerContr
 C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\AudioMixerController.App.pdb
 C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\AudioMixerController.App.genruntimeconfig.cache
 C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\ref\AudioMixerController.App.dll
+C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\AudioMixerController.App.sourcelink.json
+C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.dll
+C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.Asio.dll
+C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.Core.dll
+C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.Midi.dll
+C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.Wasapi.dll
+C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.WinForms.dll
+C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.WinMM.dll
