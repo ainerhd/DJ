@@ -35,19 +35,22 @@
                 <!-- DeadZone -->
                 <StackPanel Grid.Column="0">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="DEADZONE (RAW)"/>
-                    <TextBox Text="{Binding DeadZone, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox ToolTip="RAW-Randbereich, der hart auf 0% bzw. 100% geklemmt wird. Beispiel: 5 => RAW &lt;= 5 ist 0%, RAW &gt;= 1018 ist 100%."
+                             Text="{Binding DeadZone, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
                 </StackPanel>
 
                 <!-- Buffer -->
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="BUFFER-GRÖßE"/>
-                    <TextBox Text="{Binding BufferSize, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox ToolTip="Anzahl RAW-Samples für Mittelwert. Höher = ruhiger, aber etwas träger. Empfohlen: 3 bis 6."
+                             Text="{Binding BufferSize, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
                 </StackPanel>
 
                 <!-- Smoothing -->
                 <StackPanel Grid.Column="4">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="SMOOTHING"/>
-                    <TextBox Text="{Binding SmoothingFactor, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox ToolTip="Ramp-Faktor für Lautstärkeänderung. 1.0 = direkt, kleiner = weicher/träger. Empfohlen: 0.15 bis 0.35."
+                             Text="{Binding SmoothingFactor, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
                 </StackPanel>
 
                 <!-- Debug toggle -->

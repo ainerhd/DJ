@@ -50,3 +50,5 @@ C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.WinForms.dll
 C:\Users\amin\OneDrive\IT\DJ\App\bin\Debug\net8.0-windows\NAudio.WinMM.dll
 C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\Themes\DarkTheme.baml
 C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\App.baml
+C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+C:\Users\amin\OneDrive\IT\DJ\App\obj\Debug\net8.0-windows\AudioMixerController.App_MarkupCompile.lref

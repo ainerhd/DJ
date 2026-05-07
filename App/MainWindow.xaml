@@ -47,8 +47,10 @@
                         CornerRadius="20" Padding="12,6" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <Ellipse Width="7" Height="7" VerticalAlignment="Center" Margin="0,0,6,0"
-                                 Fill="#57D995"/>
-                        <TextBlock Text="{Binding ConnectionStatus}" Foreground="#8B949E" FontSize="12"/>
+                                  Fill="{Binding ConnectionStatus, Converter={StaticResource ConnectionStatusBrush}}"/>
+                        <TextBlock Text="{Binding ConnectionStatus}"
+                                   Foreground="{Binding ConnectionStatus, Converter={StaticResource ConnectionStatusBrush}}"
+                                   FontSize="12"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -215,8 +217,11 @@
                 <TextBlock Grid.Column="3" Text="Status" Style="{StaticResource FieldLabel}"
                            Margin="0" VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="8,0,0,0" VerticalAlignment="Center">
-                    <Ellipse Width="7" Height="7" Fill="#57D995" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBlock Text="{Binding ConnectionStatus}" Foreground="#57D995"
+                    <Ellipse Width="7" Height="7"
+                             Fill="{Binding ConnectionStatus, Converter={StaticResource ConnectionStatusBrush}}"
+                             VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Text="{Binding ConnectionStatus}"
+                               Foreground="{Binding ConnectionStatus, Converter={StaticResource ConnectionStatusBrush}}"
                                FontWeight="SemiBold" FontSize="13"/>
                 </StackPanel>
             </Grid>
