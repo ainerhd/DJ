@@ -4,222 +4,221 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Audio Mixer Controller" Height="760" Width="1120"
-        WindowStartupLocation="CenterScreen">
-    <Window.Resources>
-        <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#141920" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#141920" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightBrushKey}" Color="#141920" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightLightBrushKey}" Color="#141920" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkBrushKey}" Color="#3A4553" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkDarkBrushKey}" Color="#2E3640" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#2F3B4A" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#F3F6FA" />
+        Title="Audio Mixer Controller"
+        Height="740" Width="1100"
+        MinHeight="580" MinWidth="800"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBg}">
 
-        <LinearGradientBrush x:Key="AppBackground" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#0E1013" Offset="0" />
-            <GradientStop Color="#1A1F25" Offset="1" />
-        </LinearGradientBrush>
-
-        <Style TargetType="Border" x:Key="CardBorder">
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Padding" Value="12" />
-            <Setter Property="Background" Value="#1D232B" />
-            <Setter Property="BorderBrush" Value="#2E3640" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-
-        <Style TargetType="Button">
-            <Setter Property="Foreground" Value="#F3F6FA" />
-            <Setter Property="Background" Value="#2A313B" />
-            <Setter Property="BorderBrush" Value="#3A4553" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="12,7" />
-            <Setter Property="Margin" Value="0" />
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Foreground" Value="#F3F6FA" />
-            <Setter Property="Background" Value="#141920" />
-            <Setter Property="BorderBrush" Value="#3A4553" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="8,4" />
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Foreground" Value="#F3F6FA" />
-            <Setter Property="Background" Value="#141920" />
-            <Setter Property="BorderBrush" Value="#3A4553" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="6,3" />
-        </Style>
-
-        <Style x:Key="DarkComboBox" TargetType="ComboBox">
-            <Setter Property="Foreground" Value="#F3F6FA" />
-            <Setter Property="Background" Value="#141920" />
-            <Setter Property="BorderBrush" Value="#3A4553" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="32" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.ColumnSpan="2"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="6" />
-
-                            <ContentPresenter Grid.Column="0"
-                                              Margin="10,0,6,0"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Left"
-                                              IsHitTestVisible="False"
-                                              Content="{TemplateBinding SelectionBoxItem}"
-                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
-
-                            <ToggleButton Grid.ColumnSpan="2"
-                                          Focusable="False"
-                                          Background="Transparent"
-                                          BorderThickness="0"
-                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                          ClickMode="Press" />
-
-                            <Border Grid.Column="1" IsHitTestVisible="False" Background="#202732" CornerRadius="0,6,6,0" BorderBrush="#3A4553" BorderThickness="1,0,0,0">
-                                <TextBlock Text="▾" Foreground="#E8EEF5" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            </Border>
-
-                            <Popup Name="PART_Popup"
-                                   Placement="Bottom"
-                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   PopupAnimation="Slide">
-                                <Border Margin="0,4,0,0"
-                                        Background="#141920"
-                                        BorderBrush="#3A4553"
-                                        BorderThickness="1"
-                                        CornerRadius="6"
-                                        MinWidth="{TemplateBinding ActualWidth}">
-                                    <ScrollViewer SnapsToDevicePixels="True">
-                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                    </ScrollViewer>
-                                </Border>
-                            </Popup>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="#F3F6FA" />
-            <Setter Property="Background" Value="#141920" />
-        </Style>
-
-        <Style TargetType="DataGridCell">
-            <Setter Property="Background" Value="#171C22" />
-            <Setter Property="Foreground" Value="#F3F6FA" />
-            <Setter Property="BorderBrush" Value="#2A313B" />
-            <Setter Property="BorderThickness" Value="0,0,0,1" />
-        </Style>
-
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#202732" />
-            <Setter Property="Foreground" Value="#E8EEF5" />
-            <Setter Property="BorderBrush" Value="#2E3640" />
-            <Setter Property="BorderThickness" Value="0,0,0,1" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#E8EEF5" />
-        </Style>
-
-        <Style TargetType="DataGrid">
-            <Setter Property="RowHeight" Value="34" />
-            <Setter Property="ColumnHeaderHeight" Value="36" />
-            <Setter Property="Background" Value="#171C22" />
-            <Setter Property="Foreground" Value="#F3F6FA" />
-            <Setter Property="BorderBrush" Value="#2E3640" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="GridLinesVisibility" Value="Horizontal" />
-            <Setter Property="HorizontalGridLinesBrush" Value="#2A313B" />
-            <Setter Property="RowBackground" Value="#171C22" />
-            <Setter Property="AlternatingRowBackground" Value="#1A2028" />
-            <Setter Property="HeadersVisibility" Value="Column" />
-        </Style>
-    </Window.Resources>
-
-    <Grid Margin="16" Background="{StaticResource AppBackground}">
+    <Grid Margin="16,14,16,14">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>   <!-- Header -->
+            <RowDefinition Height="10"/>     <!-- Gap -->
+            <RowDefinition Height="Auto"/>   <!-- Controls -->
+            <RowDefinition Height="10"/>     <!-- Gap -->
+            <RowDefinition Height="*"/>      <!-- Channel list -->
+            <RowDefinition Height="10"/>     <!-- Gap -->
+            <RowDefinition Height="Auto"/>   <!-- Status bar -->
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,10">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Left" FontSize="20" FontWeight="SemiBold" Text="Audio Mixer Controller" />
-                <TextBlock DockPanel.Dock="Right" Foreground="#9FB0C5" VerticalAlignment="Center" Text="Live Mixer" />
-            </DockPanel>
-        </Border>
-
-        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+        <!-- ── Header ──────────────────────────────────────────────────── -->
+        <Border Grid.Row="0" Style="{StaticResource Card}" Padding="18,12">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="180" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="120" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock VerticalAlignment="Center" Text="COM Port" Margin="0,0,8,0" />
-                <ComboBox Grid.Column="1" Style="{StaticResource DarkComboBox}" ItemsSource="{Binding AvailablePorts}" SelectedItem="{Binding SelectedPort}" />
-                <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6" Content="Refresh" Command="{Binding RefreshPortsCommand}" />
-                <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="Baudrate" Margin="12,0,8,0" />
-                <ComboBox Grid.Column="4" Style="{StaticResource DarkComboBox}" ItemsSource="{Binding AvailableBaudRates}" SelectedItem="{Binding SelectedBaudRate}" />
-                <Button Grid.Column="5" Margin="12,0,0,0" Padding="12,6" Content="Connect" Command="{Binding ConnectCommand}" />
-                <Button Grid.Column="6" Margin="8,0,0,0" Padding="12,6" Content="Disconnect" Command="{Binding DisconnectCommand}" />
-                <Button Grid.Column="7" Margin="8,0,0,0" Padding="12,6" Content="Konfiguration" Click="OpenMonitor_Click" />
+
+                <!-- Left: title -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="♪" FontSize="22" Foreground="#4A90D9" Margin="0,0,10,0"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="Audio Mixer Controller" FontSize="18" FontWeight="SemiBold"
+                               Foreground="#E6EDF3" VerticalAlignment="Center"/>
+                    <Border Background="#1A3050" BorderBrush="#2A5080" BorderThickness="1"
+                            CornerRadius="4" Margin="12,0,0,0" Padding="8,2" VerticalAlignment="Center">
+                        <TextBlock Text="LIVE" FontSize="10" FontWeight="Bold"
+                                   Foreground="#4A90D9"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right: status pill -->
+                <Border Grid.Column="1" Background="#1C2433" BorderBrush="#30363D" BorderThickness="1"
+                        CornerRadius="20" Padding="12,6" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="7" Height="7" VerticalAlignment="Center" Margin="0,0,6,0"
+                                 Fill="#57D995"/>
+                        <TextBlock Text="{Binding ConnectionStatus}" Foreground="#8B949E" FontSize="12"/>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Border>
 
-        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
-            <DockPanel LastChildFill="True">
-                <TextBlock DockPanel.Dock="Top" Margin="0,0,0,10" FontSize="15" FontWeight="SemiBold" Text="Kanäle" />
-            <DataGrid ItemsSource="{Binding Channels}" AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True" GridLinesVisibility="Horizontal">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Kanal" Binding="{Binding ChannelIndex}" Width="80" />
-                    <DataGridTextColumn Header="Lautstärke (%)" Binding="{Binding AppliedVolume}" Width="140" />
-                    <DataGridTextColumn Header="Gerät" Binding="{Binding TargetDeviceName}" Width="*" />
-                </DataGrid.Columns>
-            </DataGrid>
+        <!-- ── Controls bar ────────────────────────────────────────────── -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>  <!-- Port label -->
+                    <ColumnDefinition Width="160"/>   <!-- Port combo -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Refresh -->
+                    <ColumnDefinition Width="16"/>    <!-- Spacer -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Baud label -->
+                    <ColumnDefinition Width="120"/>   <!-- Baud combo -->
+                    <ColumnDefinition Width="*"/>     <!-- Flex -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Connect -->
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="Auto"/>  <!-- Disconnect -->
+                    <ColumnDefinition Width="16"/>    <!-- Divider -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Config -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Port -->
+                <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="PORT" Margin="0,0,0,3"/>
+                </StackPanel>
+                <ComboBox Grid.Column="1" VerticalAlignment="Center"
+                          ItemsSource="{Binding AvailablePorts}"
+                          SelectedItem="{Binding SelectedPort}"/>
+                <Button Grid.Column="2" Margin="6,0,0,0" VerticalAlignment="Center"
+                        Padding="10,6" Content="↺  Refresh"
+                        Command="{Binding RefreshPortsCommand}"/>
+
+                <!-- Separator -->
+                <Rectangle Grid.Column="3" Width="1" Fill="#30363D" Margin="0,4" VerticalAlignment="Stretch"/>
+
+                <!-- Baudrate -->
+                <StackPanel Grid.Column="4" Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="BAUDRATE" Margin="0,0,0,3"/>
+                </StackPanel>
+                <ComboBox Grid.Column="5" VerticalAlignment="Center"
+                          ItemsSource="{Binding AvailableBaudRates}"
+                          SelectedItem="{Binding SelectedBaudRate}"/>
+
+                <!-- Connection buttons -->
+                <Button Grid.Column="7" VerticalAlignment="Center"
+                        Style="{StaticResource PrimaryButton}"
+                        Padding="16,7" Content="⚡  Verbinden"
+                        Command="{Binding ConnectCommand}"/>
+                <Button Grid.Column="9" VerticalAlignment="Center"
+                        Style="{StaticResource DangerButton}"
+                        Padding="14,7" Content="✕  Trennen"
+                        Command="{Binding DisconnectCommand}"/>
+
+                <!-- Divider -->
+                <Rectangle Grid.Column="10" Width="1" Fill="#30363D" Margin="0,4" VerticalAlignment="Stretch"/>
+
+                <!-- Config -->
+                <Button Grid.Column="11" VerticalAlignment="Center"
+                        Padding="14,7" Content="⚙  Konfiguration"
+                        Click="OpenMonitor_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- ── Channel list ─────────────────────────────────────────────── -->
+        <Border Grid.Row="4" Style="{StaticResource Card}" Padding="16,14">
+            <DockPanel>
+                <!-- Section header -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Kanäle" Margin="0"/>
+                    <TextBlock Grid.Column="1" Foreground="#6E7681" FontSize="11" VerticalAlignment="Center">
+                        <Run Text="{Binding Channels.Count, Mode=OneWay}"/>
+                        <Run Text=" Kanal(e) aktiv"/>
+                    </TextBlock>
+                </Grid>
+
+                <DataGrid ItemsSource="{Binding Channels}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          SelectionUnit="FullRow">
+                    <DataGrid.Columns>
+
+                        <!-- Kanal index -->
+                        <DataGridTextColumn Header="KANAL"
+                                            Binding="{Binding ChannelIndex}"
+                                            Width="80">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight"      Value="SemiBold"/>
+                                    <Setter Property="Foreground"      Value="#8B949E"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding"         Value="10,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Volume bar + value -->
+                        <DataGridTemplateColumn Header="LAUTSTÄRKE" Width="220" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="10,0" VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="44"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ProgressBar Minimum="0" Maximum="100"
+                                                     Value="{Binding AppliedVolume, Mode=OneWay}"
+                                                     Height="6" VerticalAlignment="Center"
+                                                     Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding AppliedVolume, StringFormat={}{0:F0}%}"
+                                                   Foreground="#8B949E" FontSize="12"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Device name -->
+                        <DataGridTextColumn Header="GERÄT"
+                                            Binding="{Binding TargetDeviceName}"
+                                            Width="*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding"           Value="10,0"/>
+                                    <Setter Property="Foreground"        Value="#E6EDF3"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="3" Style="{StaticResource CardBorder}" Padding="10">
+        <!-- ── Status bar ──────────────────────────────────────────────── -->
+        <Border Grid.Row="6" Background="#161B22" BorderBrush="#30363D" BorderThickness="1"
+                CornerRadius="8" Padding="16,8">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Aktiver Port:" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1" Foreground="#84D7A8" Text="{Binding ActivePort}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="Verbindungsstatus:" Margin="20,0,0,0" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3" Foreground="#84D7A8" Text="{Binding ConnectionStatus}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="0" Text="Aktiver Port" Style="{StaticResource FieldLabel}"
+                           Margin="0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Foreground="#4A90D9" FontWeight="SemiBold" FontSize="13"
+                           Text="{Binding ActivePort}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+
+                <Rectangle Grid.Column="2" Fill="Transparent"/>
+
+                <TextBlock Grid.Column="3" Text="Status" Style="{StaticResource FieldLabel}"
+                           Margin="0" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="8,0,0,0" VerticalAlignment="Center">
+                    <Ellipse Width="7" Height="7" Fill="#57D995" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Text="{Binding ConnectionStatus}" Foreground="#57D995"
+                               FontWeight="SemiBold" FontSize="13"/>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>
