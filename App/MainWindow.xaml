@@ -142,8 +142,8 @@
 
                         <!-- Kanal index -->
                         <DataGridTextColumn Header="KANAL"
-                                            Binding="{Binding ChannelIndex}"
-                                            Width="80">
+                                            Binding="{Binding DisplayName}"
+                                            Width="160">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="FontWeight"      Value="SemiBold"/>

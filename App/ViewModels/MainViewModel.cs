@@ -13,6 +13,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
     private readonly SettingsStore _settings;
     private readonly MixerSignalProcessor _processor = new();
     private MixerConfiguration _configuration = new();
+    private CancellationTokenSource? _reconnectCts;
     private readonly object _latestLock = new();
     private int[] _latestRaw = Array.Empty<int>();
     private int[] _latestPercent = Array.Empty<int>();
@@ -24,6 +25,8 @@ public sealed class MainViewModel : BindableBase, IDisposable
 
     private Dictionary<int, ChannelRoutingRow> _routeCache = new();
     private Dictionary<string, AudioDeviceInfo> _deviceCache = new();
+    private readonly Dictionary<int, double> _lastVolumeByChannel = new();
+    private readonly Dictionary<int, long> _lastVolumeTicksByChannel = new();
 
     private string _selectedPort = string.Empty;
     private int _selectedBaudRate = 115200;
@@ -35,6 +38,8 @@ public sealed class MainViewModel : BindableBase, IDisposable
     private int _bufferSize = 4;
     private double _smoothingFactor = 0.18;
     private bool _debugLogsEnabled;
+    private bool _autoReconnectEnabled = true;
+    private bool _shouldKeepConnected;
 
     public MainViewModel(SerialMixerService serial, IAudioVolumeService audio, SettingsStore settings, LogStore logStore)
     {
@@ -178,6 +183,12 @@ public sealed class MainViewModel : BindableBase, IDisposable
         }
     }
 
+    public bool AutoReconnectEnabled
+    {
+        get => _autoReconnectEnabled;
+        set => SetProperty(ref _autoReconnectEnabled, value);
+    }
+
     public async Task InitializeAsync()
     {
         try
@@ -205,6 +216,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
         }
         RebuildChannels(_configuration.ChannelCount);
         RebuildChannelRouting();
+        StartReconnectLoop();
 
         if (!string.IsNullOrWhiteSpace(_configuration.LastPresetName) && PresetNames.Contains(_configuration.LastPresetName))
         {
@@ -228,6 +240,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
         BufferSize = _configuration.BufferSize;
         SmoothingFactor = _configuration.SmoothingFactor;
         DebugLogsEnabled = _configuration.DebugLogsEnabled;
+        AutoReconnectEnabled = _configuration.AutoReconnectEnabled;
         _processor.AdcMaxValue = _configuration.AdcMaxValue;
     }
 
@@ -282,6 +295,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
         try
         {
             await _serial.ConnectAsync(SelectedPort, SelectedBaudRate);
+            _shouldKeepConnected = true;
             ActivePort = SelectedPort;
             ConnectionStatus = $"Connected ({SelectedBaudRate})";
             await SaveSettingsAsync();
@@ -295,6 +309,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
 
     private void Disconnect()
     {
+        _shouldKeepConnected = false;
         _serial.Disconnect();
         ActivePort = "-";
         ConnectionStatus = "Disconnected";
@@ -386,12 +401,19 @@ public sealed class MainViewModel : BindableBase, IDisposable
             ChannelRouting.Add(new ChannelRoutingRow
             {
                 ChannelIndex = map.ChannelIndex,
+                ChannelName = string.IsNullOrWhiteSpace(map.ChannelName) ? $"Kanal {map.ChannelIndex}" : map.ChannelName,
                 AudioDeviceId = map.AudioDeviceId,
-                Invert = map.Invert
+                Invert = map.Invert,
+                IsEnabled = map.IsEnabled
             });
         }
 
         _routeCache = ChannelRouting.ToDictionary(r => r.ChannelIndex);
+
+        foreach (var row in ChannelRouting)
+        {
+            row.PropertyChanged += (_, _) => _routeCache = ChannelRouting.ToDictionary(r => r.ChannelIndex);
+        }
     }
 
     private void EnsureMappingsForChannelCount()
@@ -403,6 +425,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
                 _configuration.ChannelMappings.Add(new MixerChannelMapping
                 {
                     ChannelIndex = i,
+                    ChannelName = $"Kanal {i}",
                     AudioDeviceId = string.Empty,
                     AudioDeviceName = "Default Device"
                 });
@@ -423,6 +446,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
         _configuration.BufferSize = BufferSize;
         _configuration.SmoothingFactor = SmoothingFactor;
         _configuration.DebugLogsEnabled = DebugLogsEnabled;
+        _configuration.AutoReconnectEnabled = AutoReconnectEnabled;
         _configuration.LastPresetName = string.IsNullOrWhiteSpace(SelectedPresetName) ? "Default" : SelectedPresetName;
 
         _configuration.ChannelMappings = ChannelRouting.Select(row =>
@@ -431,9 +455,11 @@ public sealed class MainViewModel : BindableBase, IDisposable
             return new MixerChannelMapping
             {
                 ChannelIndex = row.ChannelIndex,
+                ChannelName = row.ChannelName,
                 AudioDeviceId = row.AudioDeviceId,
                 AudioDeviceName = device?.Name ?? "Default Device",
-                Invert = row.Invert
+                Invert = row.Invert,
+                IsEnabled = row.IsEnabled
             };
         }).OrderBy(x => x.ChannelIndex).ToList();
     }
@@ -460,12 +486,23 @@ public sealed class MainViewModel : BindableBase, IDisposable
             filtered[i] = Math.Round(result.filteredPercent, 1);
 
             _routeCache.TryGetValue(i + 1, out var route);
+            var enabled = route?.IsEnabled ?? true;
             var deviceId = route?.AudioDeviceId ?? string.Empty;
             var invert = route?.Invert ?? false;
 
             var volume = invert ? 100.0 - result.filteredPercent : result.filteredPercent;
             applied[i] = Math.Round(volume, 1);
-            deviceNames[i] = _deviceCache.TryGetValue(deviceId, out var dev) ? dev.Name : "Default Device";
+            var deviceExists = string.IsNullOrWhiteSpace(deviceId) || _deviceCache.ContainsKey(deviceId);
+            deviceNames[i] = !enabled
+                ? "Inaktiv"
+                : _deviceCache.TryGetValue(deviceId, out var dev)
+                    ? dev.Name
+                    : string.IsNullOrWhiteSpace(deviceId) ? "Default Device" : "Gerät fehlt";
+
+            if (!enabled || !deviceExists || !ShouldSendVolume(i, volume))
+            {
+                continue;
+            }
 
             try
             {
@@ -527,6 +564,11 @@ public sealed class MainViewModel : BindableBase, IDisposable
                     channel.FilteredPercent = latestFiltered[i];
                     channel.AppliedVolume = latestApplied[i];
                     channel.TargetDeviceName = latestDeviceNames[i];
+                    if (_routeCache.TryGetValue(i + 1, out var route))
+                    {
+                        channel.ChannelName = route.ChannelName;
+                        channel.IsEnabled = route.IsEnabled;
+                    }
                 }
             }
             finally
@@ -538,5 +580,74 @@ public sealed class MainViewModel : BindableBase, IDisposable
 
     private void ClearLogs() => LogStore.Clear();
 
-    public void Dispose() => _serial.Dispose();
+    private bool ShouldSendVolume(int channelIndex, double volume)
+    {
+        var now = Stopwatch.GetTimestamp();
+        var intervalMs = Math.Max(10, _configuration.VolumeUpdateIntervalMs);
+        var threshold = Math.Max(0.0, _configuration.VolumeChangeThreshold);
+
+        _lastVolumeByChannel.TryGetValue(channelIndex, out var previousVolume);
+        _lastVolumeTicksByChannel.TryGetValue(channelIndex, out var previousTicks);
+
+        var elapsedMs = previousTicks == 0 ? double.MaxValue : (now - previousTicks) * 1000.0 / Stopwatch.Frequency;
+        var isHardEdge = volume <= 0.0 || volume >= 100.0;
+        var changedEnough = Math.Abs(volume - previousVolume) >= threshold;
+
+        if (!isHardEdge && !changedEnough && elapsedMs < intervalMs)
+        {
+            return false;
+        }
+
+        _lastVolumeByChannel[channelIndex] = volume;
+        _lastVolumeTicksByChannel[channelIndex] = now;
+        return true;
+    }
+
+    private void StartReconnectLoop()
+    {
+        _reconnectCts?.Cancel();
+        _reconnectCts = new CancellationTokenSource();
+        _ = Task.Run(() => ReconnectLoopAsync(_reconnectCts.Token));
+    }
+
+    private async Task ReconnectLoopAsync(CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            try
+            {
+                await Task.Delay(2000, token);
+
+                if (!AutoReconnectEnabled || !_shouldKeepConnected || _serial.IsConnected || string.IsNullOrWhiteSpace(SelectedPort))
+                {
+                    continue;
+                }
+
+                var ports = _serial.GetPortNames();
+                if (!ports.Contains(SelectedPort))
+                {
+                    await Application.Current.Dispatcher.InvokeAsync(() => ConnectionStatus = "Waiting for COM");
+                    continue;
+                }
+
+                await Application.Current.Dispatcher.InvokeAsync(() => ConnectionStatus = "Reconnecting...");
+                await ConnectAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                LogStore.Add($"Reconnect error: {ex.Message}", true);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        _reconnectCts?.Cancel();
+        _reconnectCts?.Dispose();
+        _serial.Dispose();
+    }
 }

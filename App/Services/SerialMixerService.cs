@@ -118,13 +118,34 @@ public sealed class SerialMixerService : IDisposable
             {
                 _log.Add($"Serial read error: {ex.Message}");
                 StatusChanged?.Invoke($"Read error: {ex.Message}");
-
-                if (_port is null || !_port.IsOpen)
-                    break;
-
-                await Task.Delay(250, token);
+                ClosePortAfterReadFailure();
+                break;
             }
         }
+    }
+
+    private void ClosePortAfterReadFailure()
+    {
+        try
+        {
+            _port?.Close();
+        }
+        catch (Exception ex)
+        {
+            _log.Add($"Serial failure close error: {ex.Message}");
+        }
+
+        try
+        {
+            _port?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _log.Add($"Serial failure dispose error: {ex.Message}");
+        }
+
+        _port = null;
+        StatusChanged?.Invoke("Disconnected");
     }
 
     private void AppendChunk(string chunk)
