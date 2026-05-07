@@ -53,6 +53,33 @@
                              Text="{Binding SmoothingFactor, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
                 </StackPanel>
 
+                <!-- Calibration -->
+                <Border Grid.Column="5" Background="#1C2433" BorderBrush="#30363D" BorderThickness="1"
+                        CornerRadius="8" Padding="10,8" Margin="0,0,12,0" VerticalAlignment="Bottom">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="KALIBRIERUNG" Margin="0,0,0,6"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Kanal" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox Width="140"
+                                      ItemsSource="{Binding ChannelRouting}"
+                                      DisplayMemberPath="ChannelName"
+                                      SelectedValuePath="ChannelIndex"
+                                      SelectedValue="{Binding SelectedCalibrationChannel}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="Min:" Foreground="#8B949E" Margin="0,0,4,0"/>
+                            <TextBlock Text="{Binding CurrentCalibrationMinText}" Foreground="#E6EDF3" FontFamily="Consolas" Margin="0,0,12,0"/>
+                            <TextBlock Text="Max:" Foreground="#8B949E" Margin="0,0,4,0"/>
+                            <TextBlock Text="{Binding CurrentCalibrationMaxText}" Foreground="#E6EDF3" FontFamily="Consolas"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Padding="8,4" Margin="0,0,6,0" Content="Min messen" Command="{Binding CaptureCalibrationMinCommand}"/>
+                            <Button Padding="8,4" Margin="0,0,6,0" Content="Max messen" Command="{Binding CaptureCalibrationMaxCommand}"/>
+                            <Button Padding="8,4" Content="Reset" Command="{Binding ClearCalibrationCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- Debug toggle -->
                 <Border Grid.Column="6" Background="#1C2433" BorderBrush="#30363D" BorderThickness="1"
                         CornerRadius="8" Padding="12,8" VerticalAlignment="Bottom">
@@ -77,6 +104,12 @@
                     <ColumnDefinition Width="Auto"/>  <!-- Name label -->
                     <ColumnDefinition Width="160"/>   <!-- Name input -->
                     <ColumnDefinition Width="Auto"/>  <!-- Speichern -->
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="Auto"/>  <!-- Duplizieren -->
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="Auto"/>  <!-- Umbenennen -->
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="Auto"/>  <!-- Löschen -->
                     <ColumnDefinition Width="*"/>     <!-- Flex -->
                     <ColumnDefinition Width="Auto"/>  <!-- Geräte -->
                     <ColumnDefinition Width="8"/>
@@ -107,12 +140,22 @@
                         Style="{StaticResource SuccessButton}"
                         Padding="14,7" Content="↑  Speichern"
                         Command="{Binding SavePresetCommand}"/>
+                <Button Grid.Column="8" VerticalAlignment="Center"
+                        Padding="12,7" Content="⧉  Duplizieren"
+                        Command="{Binding DuplicatePresetCommand}"/>
+                <Button Grid.Column="10" VerticalAlignment="Center"
+                        Padding="12,7" Content="✎  Umbenennen"
+                        Command="{Binding RenamePresetCommand}"/>
+                <Button Grid.Column="12" VerticalAlignment="Center"
+                        Style="{StaticResource DangerButton}"
+                        Padding="12,7" Content="🗑  Löschen"
+                        Command="{Binding DeletePresetCommand}"/>
 
                 <!-- Actions -->
-                <Button Grid.Column="8" VerticalAlignment="Center"
+                <Button Grid.Column="14" VerticalAlignment="Center"
                         Padding="12,7" Content="⟳  Geräte"
                         Command="{Binding RefreshDevicesCommand}"/>
-                <Button Grid.Column="10" VerticalAlignment="Center"
+                <Button Grid.Column="16" VerticalAlignment="Center"
                         Padding="12,7" Content="💾  Sichern"
                         Command="{Binding SaveSettingsCommand}"/>
             </Grid>

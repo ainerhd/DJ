@@ -9,6 +9,7 @@ public sealed class MixerChannelState : BindableBase
     private string _targetDeviceName = "Default";
     private double _appliedVolume;
     private bool _isEnabled = true;
+    private string _routingStatus = "OK";
 
     public int ChannelIndex { get; init; }
 
@@ -60,5 +61,11 @@ public sealed class MixerChannelState : BindableBase
     {
         get => _isEnabled;
         set => SetProperty(ref _isEnabled, value);
+    }
+
+    public string RoutingStatus
+    {
+        get => _routingStatus;
+        set => SetProperty(ref _routingStatus, value);
     }
 }

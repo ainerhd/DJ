@@ -10,10 +10,12 @@ public sealed class MixerSignalProcessor
     public int DeadZone { get; set; } = 2;
     public int BufferSize { get; set; } = 4;
 
-    public (int percent, double filteredPercent) Process(int channelIndex, int rawValue)
+    public (int percent, double filteredPercent) Process(int channelIndex, int rawValue, int? calibrationMinRaw = null, int? calibrationMaxRaw = null)
     {
         var bufferedRaw = AddAndAverageRaw(channelIndex, rawValue);
-        var targetPercent = NormalizeWithEdgeTrim(bufferedRaw, AdcMaxValue, DeadZone);
+        var targetPercent = calibrationMinRaw.HasValue && calibrationMaxRaw.HasValue
+            ? NormalizeWithCalibration(bufferedRaw, calibrationMinRaw.Value, calibrationMaxRaw.Value, DeadZone)
+            : NormalizeWithEdgeTrim(bufferedRaw, AdcMaxValue, DeadZone);
 
         if (!_filtered.TryGetValue(channelIndex, out var previous))
         {
@@ -100,6 +102,39 @@ public sealed class MixerSignalProcessor
         }
 
         var scaled = (rawValue - minRaw) / range * 100.0;
+        return Math.Clamp(scaled, 0.0, 100.0);
+    }
+
+    public static double NormalizeWithCalibration(double rawValue, int minRaw, int maxRaw, int edgeTrimRaw)
+    {
+        if (maxRaw <= minRaw)
+        {
+            return 0.0;
+        }
+
+        var clampedMin = minRaw;
+        var clampedMax = maxRaw;
+        var trim = Math.Clamp(edgeTrimRaw, 0, (clampedMax - clampedMin) / 2);
+        clampedMin += trim;
+        clampedMax -= trim;
+
+        if (rawValue <= clampedMin)
+        {
+            return 0.0;
+        }
+
+        if (rawValue >= clampedMax)
+        {
+            return 100.0;
+        }
+
+        var range = clampedMax - clampedMin;
+        if (range <= 0)
+        {
+            return 0.0;
+        }
+
+        var scaled = (rawValue - clampedMin) / range * 100.0;
         return Math.Clamp(scaled, 0.0, 100.0);
     }
 }

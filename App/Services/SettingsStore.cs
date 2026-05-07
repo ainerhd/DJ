@@ -17,6 +17,12 @@ public sealed class SettingsStore
         Directory.CreateDirectory(_baseFolder);
         Directory.CreateDirectory(PresetsFolder);
 
+        if (File.Exists(SettingsPath))
+        {
+            var backupPath = $"{SettingsPath}.bak";
+            File.Copy(SettingsPath, backupPath, true);
+        }
+
         await using var stream = File.Create(SettingsPath);
         await JsonSerializer.SerializeAsync(stream, configuration, JsonOptions);
     }
@@ -28,8 +34,23 @@ public sealed class SettingsStore
             return new MixerConfiguration();
         }
 
-        await using var stream = File.OpenRead(SettingsPath);
-        return await JsonSerializer.DeserializeAsync<MixerConfiguration>(stream, JsonOptions) ?? new MixerConfiguration();
+        try
+        {
+            await using var stream = File.OpenRead(SettingsPath);
+            return await JsonSerializer.DeserializeAsync<MixerConfiguration>(stream, JsonOptions) ?? new MixerConfiguration();
+        }
+        catch
+        {
+            var backupPath = $"{SettingsPath}.bak";
+            if (File.Exists(backupPath))
+            {
+                File.Copy(backupPath, SettingsPath, true);
+                await using var backupStream = File.OpenRead(SettingsPath);
+                return await JsonSerializer.DeserializeAsync<MixerConfiguration>(backupStream, JsonOptions) ?? new MixerConfiguration();
+            }
+
+            return new MixerConfiguration();
+        }
     }
 
     public async Task SavePresetAsync(MixerPreset preset)
@@ -65,6 +86,62 @@ public sealed class SettingsStore
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
             .ToArray()!;
+    }
+
+    public Task DeletePresetAsync(string name)
+    {
+        var path = Path.Combine(PresetsFolder, $"{SanitizeFileName(name)}.json");
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public async Task<bool> RenamePresetAsync(string sourceName, string targetName)
+    {
+        var sourcePath = Path.Combine(PresetsFolder, $"{SanitizeFileName(sourceName)}.json");
+        var targetPath = Path.Combine(PresetsFolder, $"{SanitizeFileName(targetName)}.json");
+
+        if (!File.Exists(sourcePath) || File.Exists(targetPath))
+        {
+            return false;
+        }
+
+        await using (var stream = File.OpenRead(sourcePath))
+        {
+            var preset = await JsonSerializer.DeserializeAsync<MixerPreset>(stream, JsonOptions);
+            if (preset is null)
+            {
+                return false;
+            }
+
+            preset.Name = targetName;
+            await SavePresetAsync(preset);
+        }
+
+        File.Delete(sourcePath);
+        return true;
+    }
+
+    public async Task<bool> DuplicatePresetAsync(string sourceName, string targetName)
+    {
+        var source = await LoadPresetAsync(sourceName);
+        if (source is null)
+        {
+            return false;
+        }
+
+        var targetPath = Path.Combine(PresetsFolder, $"{SanitizeFileName(targetName)}.json");
+        if (File.Exists(targetPath))
+        {
+            return false;
+        }
+
+        source.Name = targetName;
+        await SavePresetAsync(source);
+        return true;
     }
 
     private static string SanitizeFileName(string name)

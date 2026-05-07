@@ -25,4 +25,6 @@ public sealed class MixerChannelMapping
     public string AudioDeviceName { get; set; } = "Default";
     public bool Invert { get; set; }
     public bool IsEnabled { get; set; } = true;
+    public int? CalibrationMinRaw { get; set; }
+    public int? CalibrationMaxRaw { get; set; }
 }

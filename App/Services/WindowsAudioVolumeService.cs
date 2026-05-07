@@ -59,4 +59,14 @@ public sealed class WindowsAudioVolumeService : IAudioVolumeService
 
         device.AudioEndpointVolume.MasterVolumeLevelScalar = scalar;
     }
+
+    public void SetMasterMute(string deviceId, bool isMuted)
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        using var device = string.IsNullOrWhiteSpace(deviceId)
+            ? enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)
+            : enumerator.GetDevice(deviceId);
+
+        device.AudioEndpointVolume.Mute = isMuted;
+    }
 }

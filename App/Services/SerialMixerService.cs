@@ -23,7 +23,20 @@ public sealed class SerialMixerService : IDisposable
 
     public IReadOnlyList<string> GetPortNames() => SerialPort.GetPortNames().OrderBy(name => name).ToArray();
 
-    public async Task ConnectAsync(string portName, int baudRate)
+    public async Task<string?> AutoConnectAsync(int baudRate, int handshakeTimeoutMs = 2200)
+    {
+        foreach (var portName in GetPortNames())
+        {
+            if (await TryConnectWithHandshakeAsync(portName, baudRate, handshakeTimeoutMs))
+            {
+                return portName;
+            }
+        }
+
+        return null;
+    }
+
+    public async Task<bool> TryConnectWithHandshakeAsync(string portName, int baudRate, int handshakeTimeoutMs = 2200)
     {
         Disconnect();
 
@@ -37,12 +50,37 @@ public sealed class SerialMixerService : IDisposable
             RtsEnable = true
         };
 
-        await Task.Run(() => _port.Open());
-        _cts = new CancellationTokenSource();
-        StatusChanged?.Invoke($"Connected {portName} @ {baudRate}");
-        _log.Add($"Serial open {portName} @ {baudRate}");
+        try
+        {
+            await Task.Run(() => _port.Open());
+            var ready = await WaitForHandshakeAsync(_port, handshakeTimeoutMs);
+            if (!ready)
+            {
+                _log.Add($"Handshake failed on {portName}");
+                Disconnect();
+                return false;
+            }
 
-        _ = Task.Run(() => ReadLoopAsync(_cts.Token));
+            _cts = new CancellationTokenSource();
+            StatusChanged?.Invoke($"Connected {portName} @ {baudRate}");
+            _log.Add($"Serial open {portName} @ {baudRate}");
+            _ = Task.Run(() => ReadLoopAsync(_cts.Token));
+            return true;
+        }
+        catch
+        {
+            Disconnect();
+            throw;
+        }
+    }
+
+    public async Task ConnectAsync(string portName, int baudRate)
+    {
+        var success = await TryConnectWithHandshakeAsync(portName, baudRate);
+        if (!success)
+        {
+            throw new InvalidOperationException("Handshake failed");
+        }
     }
 
     public void Disconnect()
@@ -172,6 +210,12 @@ public sealed class SerialMixerService : IDisposable
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
+                if (string.Equals(line, "MIXER_READY", StringComparison.OrdinalIgnoreCase))
+                {
+                    _log.Add("Handshake confirmed");
+                    continue;
+                }
+
                 if (_parser.TryParse(line, out var frame) && frame is not null)
                 {
                     frames ??= new List<MixerFrame>();
@@ -195,4 +239,54 @@ public sealed class SerialMixerService : IDisposable
     }
 
     public void Dispose() => Disconnect();
+
+    private static async Task<bool> WaitForHandshakeAsync(SerialPort port, int timeoutMs)
+    {
+        var start = Environment.TickCount64;
+        var buffer = new StringBuilder();
+        var lastHello = 0L;
+
+        try
+        {
+            port.DiscardInBuffer();
+        }
+        catch
+        {
+        }
+
+        while (Environment.TickCount64 - start < timeoutMs)
+        {
+            var now = Environment.TickCount64;
+            if (now - lastHello >= 250)
+            {
+                port.WriteLine("HELLO_MIXER");
+                lastHello = now;
+            }
+
+            var chunk = port.ReadExisting();
+            if (!string.IsNullOrWhiteSpace(chunk))
+            {
+                buffer.Append(chunk);
+                var text = buffer.ToString();
+                if (text.Contains("MIXER_READY", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (text.Contains("MIXER,", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (buffer.Length > 4096)
+                {
+                    buffer.Remove(0, 2048);
+                }
+            }
+
+            await Task.Delay(25);
+        }
+
+        return false;
+    }
 }
