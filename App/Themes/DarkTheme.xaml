@@ -122,6 +122,9 @@
         <Setter Property="Padding"         Value="10,7"/>
         <Setter Property="FontFamily"      Value="Segoe UI"/>
         <Setter Property="FontSize"        Value="13"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
@@ -156,11 +159,17 @@
                         </Border>
 
                         <ToggleButton Grid.ColumnSpan="2"
-                                      Focusable="False"
-                                      Background="Transparent"
-                                      BorderThickness="0"
-                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                      ClickMode="Press"/>
+                                       Focusable="False"
+                                       Background="Transparent"
+                                       BorderThickness="0"
+                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                       ClickMode="Press">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="Transparent"/>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
 
                         <Popup Name="PART_Popup"
                                Placement="Bottom"
@@ -170,13 +179,20 @@
                                PopupAnimation="Slide">
                             <Border Margin="0,3,0,0"
                                     Background="#161B22"
-                                    BorderBrush="#30363D"
-                                    BorderThickness="1"
-                                    CornerRadius="8"
-                                    MinWidth="{TemplateBinding ActualWidth}">
-                                <ScrollViewer SnapsToDevicePixels="True" MaxHeight="220">
-                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
-                                </ScrollViewer>
+                             BorderBrush="#30363D"
+                             BorderThickness="1"
+                             CornerRadius="8"
+                             MinWidth="{TemplateBinding ActualWidth}">
+                                <Border.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#1E3A5F"/>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#E6EDF3"/>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#1A3050"/>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#E6EDF3"/>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#161B22"/>
+                                </Border.Resources>
+                                 <ScrollViewer SnapsToDevicePixels="True" MaxHeight="220">
+                                     <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                 </ScrollViewer>
                             </Border>
                         </Popup>
                     </Grid>
@@ -203,13 +219,18 @@
         <Setter Property="Padding"     Value="12,8"/>
         <Setter Property="FontFamily"  Value="Segoe UI"/>
         <Setter Property="FontSize"    Value="13"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBoxItem">
                     <Border x:Name="bg"
                             Background="{TemplateBinding Background}"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
                             Padding="{TemplateBinding Padding}">
-                        <ContentPresenter/>
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
@@ -217,6 +238,10 @@
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="bg" Property="Background" Value="#1A3050"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="bg" Property="BorderBrush" Value="Transparent"/>
+                            <Setter TargetName="bg" Property="BorderThickness" Value="0"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -432,6 +457,8 @@
         <Setter Property="BorderBrush"     Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding"         Value="10,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="Transparent"/>

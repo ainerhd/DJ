@@ -3,7 +3,7 @@
 
 const int numInputs = 5;
 const int inputPins[] = { A0, A1, A2, A3, A4 };
-const unsigned long frameIntervalMs = 10;
+const unsigned long frameIntervalMs = 25;
 
 unsigned long lastFrameAt = 0;
 unsigned long sequence = 0;

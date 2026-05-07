@@ -30,6 +30,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
     private readonly Dictionary<int, long> _lastVolumeTicksByChannel = new();
     private readonly Dictionary<int, bool> _lastMuteByChannel = new();
     private long _lastFrameAtTicks = Stopwatch.GetTimestamp();
+    private long _lastFrameProcessTicks;
 
     private string _selectedPort = string.Empty;
     private int _selectedBaudRate = 115200;
@@ -58,6 +59,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
         PresetNames = new ObservableCollection<string>();
         AudioDevices = new ObservableCollection<AudioDeviceInfo>();
         ChannelRouting = new ObservableCollection<ChannelRoutingRow>();
+        CalibrationChannels = new ObservableCollection<int>();
         LogLines = logStore.Lines;
 
         RefreshPortsCommand = new RelayCommand(RefreshPorts);
@@ -86,6 +88,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
     public ObservableCollection<string> PresetNames { get; }
     public ObservableCollection<AudioDeviceInfo> AudioDevices { get; }
     public ObservableCollection<ChannelRoutingRow> ChannelRouting { get; }
+    public ObservableCollection<int> CalibrationChannels { get; }
     public ObservableCollection<string> LogLines { get; }
 
     public ICommand RefreshPortsCommand { get; }
@@ -211,7 +214,17 @@ public sealed class MainViewModel : BindableBase, IDisposable
             {
                 OnPropertyChanged(nameof(CurrentCalibrationMinText));
                 OnPropertyChanged(nameof(CurrentCalibrationMaxText));
+                OnPropertyChanged(nameof(CurrentCalibrationRawText));
             }
+        }
+    }
+
+    public string CurrentCalibrationRawText
+    {
+        get
+        {
+            var index = SelectedCalibrationChannel - 1;
+            return index >= 0 && index < Channels.Count ? Channels[index].RawValue.ToString() : "-";
         }
     }
 
@@ -264,6 +277,11 @@ public sealed class MainViewModel : BindableBase, IDisposable
         if (!string.IsNullOrWhiteSpace(SelectedPort) && AvailablePorts.Contains(SelectedPort))
         {
             await ConnectAsync();
+        }
+        else if (AutoReconnectEnabled && !string.IsNullOrWhiteSpace(SelectedPort))
+        {
+            _shouldKeepConnected = true;
+            ConnectionStatus = "Waiting for COM";
         }
     }
 
@@ -323,38 +341,15 @@ public sealed class MainViewModel : BindableBase, IDisposable
 
     private async Task ConnectAsync()
     {
+        _shouldKeepConnected = true;
+
         try
         {
-            string? connectedPort;
-            if (string.IsNullOrWhiteSpace(SelectedPort))
+            ConnectionStatus = "Searching mixer...";
+            if (!await ConnectToMixerAsync())
             {
-                ConnectionStatus = "Searching mixer...";
-                connectedPort = await _serial.AutoConnectAsync(SelectedBaudRate);
-                if (connectedPort is null)
-                {
-                    ConnectionStatus = "Mixer not found";
-                    return;
-                }
-
-                SelectedPort = connectedPort;
+                ConnectionStatus = "Mixer not found";
             }
-            else
-            {
-                var ok = await _serial.TryConnectWithHandshakeAsync(SelectedPort, SelectedBaudRate);
-                if (!ok)
-                {
-                    ConnectionStatus = "Handshake failed";
-                    return;
-                }
-
-                connectedPort = SelectedPort;
-            }
-
-            _shouldKeepConnected = true;
-            ActivePort = connectedPort;
-            _lastFrameAtTicks = Stopwatch.GetTimestamp();
-            ConnectionStatus = $"Connected ({SelectedBaudRate})";
-            await SaveSettingsAsync();
         }
         catch (Exception ex)
         {
@@ -369,6 +364,43 @@ public sealed class MainViewModel : BindableBase, IDisposable
         _serial.Disconnect();
         ActivePort = "-";
         ConnectionStatus = "Disconnected";
+    }
+
+    private async Task<bool> ConnectToMixerAsync()
+    {
+        string? connectedPort = null;
+
+        if (!string.IsNullOrWhiteSpace(SelectedPort))
+        {
+            var ports = _serial.GetPortNames();
+            if (ports.Contains(SelectedPort))
+            {
+                var ok = await _serial.TryConnectWithHandshakeAsync(SelectedPort, SelectedBaudRate);
+                if (ok)
+                {
+                    connectedPort = SelectedPort;
+                }
+            }
+        }
+
+        if (connectedPort is null)
+        {
+            connectedPort = await _serial.AutoConnectAsync(SelectedBaudRate);
+        }
+
+        if (connectedPort is null)
+        {
+            ActivePort = "-";
+            return false;
+        }
+
+        SelectedPort = connectedPort;
+        ActivePort = connectedPort;
+        _lastFrameAtTicks = Stopwatch.GetTimestamp();
+        _lastFrameProcessTicks = 0;
+        ConnectionStatus = $"Connected ({SelectedBaudRate})";
+        await SaveSettingsAsync();
+        return true;
     }
 
     private async Task SaveSettingsAsync()
@@ -499,6 +531,7 @@ public sealed class MainViewModel : BindableBase, IDisposable
     private void RebuildChannels(int count)
     {
         Channels.Clear();
+        CalibrationChannels.Clear();
         for (var i = 0; i < count; i++)
         {
             Channels.Add(new MixerChannelState
@@ -506,6 +539,12 @@ public sealed class MainViewModel : BindableBase, IDisposable
                 ChannelIndex = i + 1,
                 TargetDeviceName = "Default Device"
             });
+            CalibrationChannels.Add(i + 1);
+        }
+
+        if (!CalibrationChannels.Contains(SelectedCalibrationChannel) && CalibrationChannels.Count > 0)
+        {
+            SelectedCalibrationChannel = CalibrationChannels[0];
         }
     }
 
@@ -600,7 +639,19 @@ public sealed class MainViewModel : BindableBase, IDisposable
 
     private void OnFrameReceived(MixerFrame frame)
     {
-        _lastFrameAtTicks = Stopwatch.GetTimestamp();
+        var now = Stopwatch.GetTimestamp();
+        _lastFrameAtTicks = now;
+
+        var processIntervalMs = Math.Clamp(_configuration.FrameProcessIntervalMs, 10, 250);
+        var processElapsedMs = _lastFrameProcessTicks == 0
+            ? double.MaxValue
+            : (now - _lastFrameProcessTicks) * 1000.0 / Stopwatch.Frequency;
+        if (processElapsedMs < processIntervalMs)
+        {
+            return;
+        }
+
+        _lastFrameProcessTicks = now;
 
         var channelCount = Math.Min(frame.RawValues.Count, Channels.Count);
         if (channelCount <= 0)
@@ -671,9 +722,9 @@ public sealed class MainViewModel : BindableBase, IDisposable
             _latestRoutingStatus = routingStatuses;
         }
 
-        var now = Stopwatch.GetTimestamp();
+        var uiUpdateIntervalMs = Math.Clamp(_configuration.UiUpdateIntervalMs, 16, 250);
         var elapsedMs = (now - _lastUiPushTicks) * 1000.0 / Stopwatch.Frequency;
-        if (elapsedMs < 50)
+        if (elapsedMs < uiUpdateIntervalMs)
         {
             return;
         }
@@ -721,6 +772,8 @@ public sealed class MainViewModel : BindableBase, IDisposable
                         channel.IsEnabled = route.IsEnabled;
                     }
                 }
+
+                OnPropertyChanged(nameof(CurrentCalibrationRawText));
             }
             finally
             {
@@ -748,6 +801,8 @@ public sealed class MainViewModel : BindableBase, IDisposable
             route.CalibrationMinRaw = 0;
             route.CalibrationMaxRaw = _processor.AdcMaxValue;
             LogStore.Add($"Kalibrierung reset ch{SelectedCalibrationChannel}: 0..{_processor.AdcMaxValue}");
+            OnPropertyChanged(nameof(CurrentCalibrationMinText));
+            OnPropertyChanged(nameof(CurrentCalibrationMaxText));
         }
     }
 
@@ -793,8 +848,8 @@ public sealed class MainViewModel : BindableBase, IDisposable
     private bool ShouldSendVolume(int channelIndex, double volume)
     {
         var now = Stopwatch.GetTimestamp();
-        var intervalMs = Math.Max(10, _configuration.VolumeUpdateIntervalMs);
-        var threshold = Math.Max(0.0, _configuration.VolumeChangeThreshold);
+        var intervalMs = Math.Max(80, _configuration.VolumeUpdateIntervalMs);
+        var threshold = Math.Max(0.75, _configuration.VolumeChangeThreshold);
 
         _lastVolumeByChannel.TryGetValue(channelIndex, out var previousVolume);
         _lastVolumeTicksByChannel.TryGetValue(channelIndex, out var previousTicks);
@@ -828,28 +883,30 @@ public sealed class MainViewModel : BindableBase, IDisposable
             {
                 await Task.Delay(2000, token);
 
-                if (!AutoReconnectEnabled || !_shouldKeepConnected || _serial.IsConnected || string.IsNullOrWhiteSpace(SelectedPort))
+                if (!AutoReconnectEnabled || !_shouldKeepConnected)
                 {
-                    if (_serial.IsConnected)
-                    {
-                        var elapsedMs = (Stopwatch.GetTimestamp() - _lastFrameAtTicks) * 1000.0 / Stopwatch.Frequency;
-                        if (elapsedMs > 2000)
-                        {
-                            await Application.Current.Dispatcher.InvokeAsync(() => ConnectionStatus = "No signal");
-                        }
-                    }
                     continue;
                 }
 
-                var ports = _serial.GetPortNames();
-                if (!ports.Contains(SelectedPort))
+                if (_serial.IsConnected)
                 {
-                    await Application.Current.Dispatcher.InvokeAsync(() => ConnectionStatus = "Waiting for COM");
+                    var elapsedMs = (Stopwatch.GetTimestamp() - _lastFrameAtTicks) * 1000.0 / Stopwatch.Frequency;
+                    if (elapsedMs > Math.Clamp(_configuration.NoSignalTimeoutMs, 500, 10000))
+                    {
+                        await Application.Current.Dispatcher.InvokeAsync(() => ConnectionStatus = "No signal");
+                        _serial.Disconnect();
+                        await Application.Current.Dispatcher.InvokeAsync(() => ActivePort = "-");
+                    }
+
                     continue;
                 }
 
                 await Application.Current.Dispatcher.InvokeAsync(() => ConnectionStatus = "Reconnecting...");
-                await ConnectAsync();
+                var connected = await Application.Current.Dispatcher.InvokeAsync(async () => await ConnectToMixerAsync()).Task.Unwrap();
+                if (!connected)
+                {
+                    await Application.Current.Dispatcher.InvokeAsync(() => ConnectionStatus = _serial.GetPortNames().Count == 0 ? "Waiting for COM" : "Mixer not found");
+                }
             }
             catch (OperationCanceledException)
             {
